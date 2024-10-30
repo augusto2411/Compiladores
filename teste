@@ -1,0 +1,19 @@
+var x = 5;
+var y;
+y = 10;
+
+if (x < y and x == 5 or true) {
+print("x é menor que y e x é igual a 5 ou verdadeiro");
+}
+
+while (x < 10) {
+print("O valor de x é:");
+print(x);
+x = x + 1;
+}
+
+var z;
+z = x + y * 12 ^ 3 ^ 4;
+
+var val;
+input(val);
