@@ -1,0 +1,8 @@
+CREATE x null
+ASSIGN y null
+PRINT "x é menor que y e x é igual a 5 ou verdadeiro"
+PRINT "O valor de x é:"
+PRINT null
+ASSIGN x null
+ASSIGN z null
+INPUT val
