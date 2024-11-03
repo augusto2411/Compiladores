@@ -1,0 +1,7 @@
+
+
+while (x < 10) {
+print("O valor de x é:");
+print(x);
+x = x + 1;
+}

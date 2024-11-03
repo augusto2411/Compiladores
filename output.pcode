@@ -1,0 +1,24 @@
+lda #0
+ldc 5
+sto 
+loopStart:
+lod #0
+ldc 10
+let
+fjp loopEnd
+ldc "O valor de x é:"
+wri
+ldc "\n"
+wri
+lod #0
+wri
+ldc "\n"
+wri
+lda #0
+lod #0
+ldc 1
+add
+sto
+ujp loopStart
+loopEnd:
+stp
