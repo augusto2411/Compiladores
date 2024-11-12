@@ -13,6 +13,8 @@ LT      : '<';
 GT      : '>';
 EQ      : '==';
 NUMBER  : [0-9]+;
+TRUE    : 'true';
+FALSE   : 'false'; 
 IDENT   : [a-zA-Z_][a-zA-Z0-9_]*;
 STRING  : '"' (~["])* '"'; // String entre aspas
 WS      : [ \t\r\n]+ -> skip; // Ignorar espaços em branco
@@ -46,7 +48,8 @@ printStatement: PRINT '(' (STRING | expression) ')' ';';
 inputStatement: INPUT '(' IDENT ')' ';';
 
 // Expressões
-expression: additiveExpression;
+expression: additiveExpression
+           | booleanExpression;
 
 // Expressões aditivas
 additiveExpression: multiplicativeExpression (('+' | '-') multiplicativeExpression)*;
@@ -71,4 +74,7 @@ comparison: additiveExpression (LT | GT | EQ) additiveExpression
            | IDENT // Permitir identificação direta
            | NUMBER // Permitir comparação com número
            | '(' logicalExpression ')' // Permitir aninhamento de expressões lógicas
-           ;
+           | booleanExpression; // Permitir inclusão de booleanos nas comparações
+
+// Expressões booleanas
+booleanExpression: TRUE | FALSE;

@@ -1,0 +1,4 @@
+var val;
+input(val);
+
+print(val);
