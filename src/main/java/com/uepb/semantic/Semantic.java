@@ -12,7 +12,6 @@ public class Semantic {
         if (currentScope.isDefined(name)) {
             throw new RuntimeException("Erro: A variável '" + name + "' já foi declarada.");
         }
-        System.out.println("Declarando variável: " + name);
         currentScope.define(name, null);
     }
 

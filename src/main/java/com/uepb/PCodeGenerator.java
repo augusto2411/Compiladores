@@ -5,15 +5,18 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Stack;
 
 public class PCodeGenerator {
     private StringBuilder pCode;
     private Map<String, Integer> memoryMap;  // Mapeia variáveis para endereços de memória
     private int nextAvailableAddress;        // Próximo endereço de memória disponível
+    private Stack<Integer> freeAddresses;         // Armazena endereços liberados para reutilização
 
     public PCodeGenerator() {
         this.pCode = new StringBuilder();
         this.memoryMap = new HashMap<>();
+        this.freeAddresses = new Stack<>();
         this.nextAvailableAddress = 0;  // Endereços começam em 0
     }
 
@@ -22,11 +25,14 @@ public class PCodeGenerator {
     }
 
     public int allocateMemory(String varName) {
-        if (!memoryMap.containsKey(varName)) {
-            memoryMap.put(varName, nextAvailableAddress);
-            nextAvailableAddress++;  // Incrementa para o próximo endereço disponível
+        int address;
+        if (freeAddresses.isEmpty()) {
+            address = nextAvailableAddress++;
+        } else {
+            address = freeAddresses.pop();  // Reutiliza endereço liberado
         }
-        return memoryMap.get(varName);  // Retorna o endereço alocado existente
+        memoryMap.put(varName, address);
+        return address;
     }
 
     public int getMemoryAddress(String varName) {
@@ -41,5 +47,12 @@ public class PCodeGenerator {
 
     public String getPCode() {
         return pCode.toString();
+    }
+
+    public void clearMemoryByRemoving(String varName) {
+        Integer address = memoryMap.remove(varName);
+        if (address != null) {
+            freeAddresses.push(address);  // Libera o endereço para reutilização
+        }
     }
 }

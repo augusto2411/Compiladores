@@ -9,6 +9,8 @@ public class MyVisitor extends UEPBLanguageBaseVisitor<Void> {
     private Semantic semanticAnalyzer;
     private PCodeGenerator pCodeGenerator;
     private List<String> errors;
+    private int labelCount = 0;
+    private int exponentialCount = 0;
 
     public MyVisitor(Semantic semanticAnalyzer, PCodeGenerator pCodeGenerator) {
         this.semanticAnalyzer = semanticAnalyzer;
@@ -72,7 +74,7 @@ public class MyVisitor extends UEPBLanguageBaseVisitor<Void> {
 
     @Override
     public Void visitIfStatement(UEPBLanguageParser.IfStatementContext ctx) {
-        String endLabel = "endIf"; // Rótulo para o fim do if
+        String endLabel = "endIf" + labelCount++; // Rótulo para o fim do if
     
         // Avalia a condição e gera o PCode correspondente
         visit(ctx.condition());
@@ -94,10 +96,7 @@ public class MyVisitor extends UEPBLanguageBaseVisitor<Void> {
     @Override
     public Void visitCondition(UEPBLanguageParser.ConditionContext ctx) {
         visit(ctx.logicalExpression()); // Avalia a expressão lógica
-    
-        // Após visitar a expressão lógica, não é necessário fazer nada aqui,
-        // pois a condição é avaliada diretamente na instrução do while.
-    
+
         return null;
     }
     @Override
@@ -160,8 +159,8 @@ public class MyVisitor extends UEPBLanguageBaseVisitor<Void> {
         semanticAnalyzer.enterScope();
     
         // Criar rótulos para o início e o final do loop
-        String loopStartLabel = "loopStart";
-        String loopEndLabel = "loopEnd";
+        String loopStartLabel = "loopStart" + labelCount++;
+        String loopEndLabel = "loopEnd" + labelCount++;
     
         // Adiciona o rótulo do início do loop
         pCodeGenerator.addInstruction(loopStartLabel + ":");
@@ -228,6 +227,9 @@ public class MyVisitor extends UEPBLanguageBaseVisitor<Void> {
         if (ctx.additiveExpression() != null) {
             visit(ctx.additiveExpression());
         }
+        if (ctx.booleanExpression() != null) {
+            visit(ctx.booleanExpression());
+        }
         return null;
     }
 
@@ -264,13 +266,75 @@ public class MyVisitor extends UEPBLanguageBaseVisitor<Void> {
 
     @Override
     public Void visitExponentiationExpression(UEPBLanguageParser.ExponentiationExpressionContext ctx) {
-        visit(ctx.unaryExpression(0));
-        for (int i = 1; i < ctx.unaryExpression().size(); i++) {
-            visit(ctx.unaryExpression(i));
-            pCodeGenerator.addInstruction("exp");
+        
+        if(ctx.EXPOENTE == null){
+            visitUnaryExpression(ctx.BASE);
+        }else{
+            var baseVar = "base" + exponentialCount++;
+            int addressBase = pCodeGenerator.allocateMemory(baseVar);
+
+            pCodeGenerator.addInstruction("lda #" + addressBase);
+            visitUnaryExpression(ctx.BASE);
+            pCodeGenerator.addInstruction("sto");
+            
+            var resultVar = "result" + exponentialCount++;
+            int addressResult = pCodeGenerator.allocateMemory(resultVar);
+            pCodeGenerator.addInstruction("lda #" + addressResult);
+            pCodeGenerator.addInstruction("lod #" + addressBase);
+            pCodeGenerator.addInstruction("sto");
+            
+            var exponentVar = "exponent" + exponentialCount++;
+            int addressExponent = pCodeGenerator.allocateMemory(exponentVar);
+            pCodeGenerator.addInstruction("lda #" + addressExponent);
+            visitExponentiationExpression(ctx.EXPOENTE); // Visita o segundo operando (expoente)
+            pCodeGenerator.addInstruction("sto "); // Armazena o valor do expoente
+        
+            String loopStartLabel = "exponentiation_loop" + labelCount++;
+            String loopEndLabel = "exponentiation_end" + labelCount++;
+        
+            // Início do loop de exponenciação
+            pCodeGenerator.addInstruction(loopStartLabel + ":");
+        
+            // Verifica se o expoente é maior que 1
+            pCodeGenerator.addInstruction("lod #" + addressExponent);
+            pCodeGenerator.addInstruction("ldc 1");
+            pCodeGenerator.addInstruction("grt");  // Verifica se o expoente é maior do que 1
+            pCodeGenerator.addInstruction("fjp " + loopEndLabel);
+        
+            // Multiplica "result" pela "base"
+            pCodeGenerator.addInstruction("lda #" + addressResult);
+    
+            pCodeGenerator.addInstruction("lod #" + addressResult);
+            pCodeGenerator.addInstruction("lod #" + addressBase);
+            pCodeGenerator.addInstruction("mul");        
+            
+            pCodeGenerator.addInstruction("sto");
+        
+            // Decrementa o expoente
+            pCodeGenerator.addInstruction("lda #" + addressExponent);
+    
+            pCodeGenerator.addInstruction("lod #" + addressExponent);
+            pCodeGenerator.addInstruction("ldc 1");
+            pCodeGenerator.addInstruction("sub");
+            
+            pCodeGenerator.addInstruction("sto");
+        
+            // Volta para o início do loop
+            pCodeGenerator.addInstruction("ujp " + loopStartLabel);
+        
+            // Fim do loop
+            pCodeGenerator.addInstruction(loopEndLabel + ":");
+        
+            // Coloca o resultado final na pilha para ser usado ou exibido
+            pCodeGenerator.addInstruction("lod #" + addressResult);
+
+            pCodeGenerator.clearMemoryByRemoving(exponentVar);
+            pCodeGenerator.clearMemoryByRemoving(baseVar);
+            pCodeGenerator.clearMemoryByRemoving(resultVar);
+            }
+            
+            return null;
         }
-        return null;
-    }
 
     @Override
     public Void visitUnaryExpression(UEPBLanguageParser.UnaryExpressionContext ctx) {

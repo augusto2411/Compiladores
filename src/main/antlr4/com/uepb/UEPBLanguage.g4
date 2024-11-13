@@ -58,7 +58,7 @@ additiveExpression: multiplicativeExpression (('+' | '-') multiplicativeExpressi
 multiplicativeExpression: exponentiationExpression (('*' | '/') exponentiationExpression)*;
 
 // Expressões de exponenciação
-exponentiationExpression: unaryExpression (('^' unaryExpression)*);
+exponentiationExpression: BASE=unaryExpression ('^' EXPOENTE=exponentiationExpression)?;
 
 // Expressões unárias
 unaryExpression: IDENT | NUMBER | '(' expression ')' | ('-' unaryExpression);

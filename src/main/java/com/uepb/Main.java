@@ -35,9 +35,6 @@ public class Main {
                 return; // Interrompe a execução se houver erros
             }
 
-            // Exibe a árvore de análise (opcional)
-            System.out.println(tree.toStringTree(parser));
-
             // Cria uma instância da classe Semantic e PCodeGenerator
             Semantic semanticAnalyzer = new Semantic();
             PCodeGenerator pCodeGenerator = new PCodeGenerator();

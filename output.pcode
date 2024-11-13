@@ -1,9 +1,1 @@
-lda #0
-lda #0
-rd
-sto
-lod #0
-wri
-ldc "\n"
-wri
 stp
